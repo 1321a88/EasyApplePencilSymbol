@@ -10,6 +10,13 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.white)
                     .border(Color.black, width: 1)
+                
+                if viewModel.drawingMode == .eraser {
+                    Circle()
+                        .stroke(Color.red, lineWidth: 2)
+                        .frame(width: viewModel.eraseCircleRadius * 2, height: viewModel.eraseCircleRadius * 2)
+                        .position(viewModel.eraseCircleCenter)
+                }
             }
             
             HStack {
@@ -52,7 +59,6 @@ struct DrawingCanvasView: View {
     var body: some View {
         GeometryReader { geometry in
             Canvas { context, size in
-                // 绘制所有的线条
                 for line in viewModel.lines {
                     var path = Path()
                     if let firstPoint = line.points.first {
@@ -61,7 +67,7 @@ struct DrawingCanvasView: View {
                             path.addLine(to: point)
                         }
                     }
-                    context.stroke(path, with: .color(.black), lineWidth: line.lineWidth) // 使用保存的线宽
+                    context.stroke(path, with: .color(.black), lineWidth: line.lineWidth)
                 }
                 
                 // 绘制当前线条
@@ -73,7 +79,7 @@ struct DrawingCanvasView: View {
                             path.addLine(to: point)
                         }
                     }
-                    context.stroke(path, with: .color(.black), lineWidth: currentLine.lineWidth) // 使用当前线宽
+                    context.stroke(path, with: .color(.black), lineWidth: currentLine.lineWidth)
                 }
             }
             .gesture(DragGesture(minimumDistance: 0)
