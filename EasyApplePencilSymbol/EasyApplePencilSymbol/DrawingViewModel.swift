@@ -10,6 +10,8 @@ class DrawingViewModel: ObservableObject {
     @Published var baseLineWidth: CGFloat = 5.0
     private var dynamicLineWidth: CGFloat = 5.0
     @Published var drawingMode: DrawingMode = .pen
+    @Published var eraseCircleCenter: CGPoint = .zero
+    @Published var eraseCircleRadius: CGFloat = 30.0
     
     var lineWidth: CGFloat {
         return dynamicLineWidth
@@ -21,34 +23,39 @@ class DrawingViewModel: ObservableObject {
     }
     
     func touchDown(at point: CGPoint, pressure: CGFloat) {
-        var newLine = Line()
-        newLine.addPoint(point)
-        newLine.lineWidth = dynamicLineWidth
-        currentLine = newLine
-        updateLineWidth(for: pressure)
+        if drawingMode == .pen {
+            var newLine = Line()
+            newLine.addPoint(point)
+            newLine.lineWidth = dynamicLineWidth
+            currentLine = newLine
+        }
+        eraseCircleCenter = point
     }
     
+    
     func touchMoved(to point: CGPoint, pressure: CGFloat) {
-        currentLine?.addPoint(point)
-        currentLine?.lineWidth = dynamicLineWidth // 更新当前线条的线宽
-        updateLineWidth(for: pressure)
+        if drawingMode == .pen {
+            currentLine?.addPoint(point)
+            currentLine?.lineWidth = dynamicLineWidth
+        } else if drawingMode == .eraser {
+            eraseCircleCenter = point
+            eraseLine(at: point)
+        }
     }
     
     func touchUp() {
-        if var currentLine = currentLine {
+        if drawingMode == .pen, var currentLine = currentLine {
             currentLine.lineWidth = dynamicLineWidth
-            if drawingMode == .pen {
-                lines.append(currentLine)
-            } else if drawingMode == .eraser {
-                eraseLine(at: currentLine)
-            }
+            lines.append(currentLine)
         }
         self.currentLine = nil
-        dynamicLineWidth = baseLineWidth
     }
     
-    private func updateLineWidth(for pressure: CGFloat) {
-        dynamicLineWidth = min(pressure * 20, baseLineWidth * 2)
+    private func updateLineWidth(for pressure: CGFloat, angle: CGFloat) {
+        dynamicLineWidth = min(pressure * 40, baseLineWidth * 2)
+        
+        let adjustedWidth = dynamicLineWidth * (1 + (angle / 90))
+        dynamicLineWidth = adjustedWidth
     }
     
     func toggleDrawingMode() {
@@ -59,8 +66,19 @@ class DrawingViewModel: ObservableObject {
         lines.removeAll()
     }
     
-    private func eraseLine(at line: Line) {
-        lines = lines.filter { !lineIntersects(line1: $0, line2: line) }
+    private func eraseLine(at point: CGPoint) {
+        for index in 0..<lines.count {
+            var line = lines[index]
+            line.points = line.points.filter { p in
+                p.distance(to: point) >= eraseCircleRadius
+            }
+            
+            if line.points.count > 1 {
+                lines[index] = line
+            } else {
+                lines.remove(at: index)
+            }
+        }
     }
     
     private func lineIntersects(line1: Line, line2: Line) -> Bool {
@@ -74,3 +92,4 @@ class DrawingViewModel: ObservableObject {
         return false
     }
 }
+
