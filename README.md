@@ -28,7 +28,6 @@ This is a simple drawing app using Apple Pencil with support for different drawi
    - Press the **Run** button (the play icon) in Xcode to build and run the app on your iOS device.
 
 ### 3. Using the App
-   - **Drawing Mode**: You can switch between the **pen** mode and **eraser** mode by tapping a toggle button.
    - **Pen Mode**: In this mode, you can draw freehand lines with variable widths based on the pressure applied by Apple Pencil.
    - **Eraser Mode**: In this mode, you can erase parts of your drawing by touching the canvas with the eraser tool.
    - **Clear Canvas**: You can clear the entire drawing by using the provided clear button.
